@@ -88,8 +88,8 @@ export default function Page() {
 
   return (
     <>
-      <div className="grid gap-4 space-y-4 md:grid-cols-7 md:space-y-0">
-        <div className="h-full md:col-span-4">
+      <div className="flex flex-col gap-5 md:flex-row">
+        <section className="flex h-full w-full flex-col gap-5">
           <Card className="h-3/5">
             <CardHeader>
               <CardTitle>Field maps</CardTitle>
@@ -111,8 +111,8 @@ export default function Page() {
             </CardHeader>
             <CardContent></CardContent>
           </Card>
-        </div>
-        <Card className="min-h-[75vh] md:col-span-3">
+        </section>
+        <Card className="min-h-[75vh]">
           <CardHeader className="flex flex-row justify-between space-x-4">
             <div className="flex-1 space-y-1.5">
               <CardTitle>My fields</CardTitle>
