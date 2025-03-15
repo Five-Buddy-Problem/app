@@ -1,5 +1,9 @@
 name: Deploy to production
 
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  NODE_ENV: production
+
 on:
   push:
     branches:
