@@ -11,15 +11,6 @@ const config = {
   images: {
     unoptimized: true,
   },
-
-  webpack: (config) => {
-    // This is needed for Three.js to work with Next.js
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      three: require.resolve("three"),
-    };
-    return config;
-  },
 };
 
 export default config;

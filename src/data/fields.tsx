@@ -1,5 +1,6 @@
 "use client";
 
+import { GeoJSONData } from "@/components/world/globe";
 import { useEffect } from "react";
 
 export type Field = {
@@ -7,6 +8,7 @@ export type Field = {
   crop: string;
   lastUpdated: Date;
   loading: boolean;
+  geoJson: GeoJSONData;
   data?: {
     infected: boolean;
     infectationChance: number;
@@ -30,6 +32,10 @@ const isLocalStorageAvailable = () => {
 
 // In-memory fallback when localStorage is not available
 let inMemoryFields: Field[] = [];
+
+export function getAllGeoJsonData() {
+  return fields.map((field) => field.geoJson);
+}
 
 // Get fields from localStorage or memory fallback
 export function getFieldsFromStorage(): Field[] {
@@ -132,5 +138,6 @@ export function useFields() {
     addField,
     removeField,
     updateField,
+    getAllGeoJsonData,
   };
 }

@@ -282,6 +282,7 @@ function NewFieldForm({
     addField({
       name: values.name,
       crop: values.crop,
+      geoJson: JSON.parse(values.geoJson),
     });
 
     toast.success("Field added successfully!");

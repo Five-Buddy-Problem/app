@@ -3,8 +3,13 @@
 import { useEffect, useState, useRef } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Stars, Text } from "@react-three/drei";
-import Globe, { GeoJSONCoordinate, GeoJSONData } from "./globe";
+import Globe, {
+  GeoJSONCoordinate,
+  GeoJSONData,
+  latLongToVector3,
+} from "./globe";
 import { Vector3 } from "three";
+import { useFields } from "@/data/fields";
 
 // Import GeoJSON types
 interface GeoJSONGeometry {
@@ -22,11 +27,9 @@ interface GeoJSONFeature {
 const CameraFocus = ({
   longitude,
   latitude,
-  enableAutomaticRotation = true,
 }: {
   longitude: number;
   latitude: number;
-  enableAutomaticRotation?: boolean;
 }) => {
   const { camera } = useThree();
   const rotationRef = useRef({ value: 0 });
@@ -66,71 +69,37 @@ const GeoLabel = ({ position, text }: { position: Vector3; text: string }) => {
 };
 
 export default function Scene() {
-  const [geoJsonData, setGeoJsonData] = useState<GeoJSONData | undefined>(
+  const [geoJsonData, setGeoJsonData] = useState<GeoJSONData[] | undefined>(
     undefined,
   );
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [focusedRegion, setFocusedRegion] = useState<string | null>(null);
   const [focusCoordinates, setFocusCoordinates] = useState<[number, number]>([
     0, 0,
   ]);
+  const { getAllGeoJsonData } = useFields();
 
   useEffect(() => {
-    // Fetch GeoJSON data
     setIsLoading(true);
-    fetch("/countries.geojson")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data: GeoJSONData) => {
-        setGeoJsonData(data);
-        setIsLoading(false);
+    const geoJson = getAllGeoJsonData();
+    if (!geoJson) {
+      setError("No GeoJSON features found in the data.");
+    } else {
+      setGeoJsonData(geoJson);
+      const coords = geoJson[0]?.features[0]?.geometry.coordinates;
+      if (!coords || coords.length === 0) {
+        return;
+      }
+      const firstCoords = latLongToVector3(
+        coords[0]![0]![0],
+        coords[0]![0]![1],
+        2,
+      );
 
-        // Set initial focus to the first feature
-        if (data.features.length > 0) {
-          const feature = data.features[0];
-
-          if (!feature) return;
-
-          // Find center coordinates of the first feature
-          if (feature.geometry.type === "Polygon") {
-            const coords = feature.geometry
-              .coordinates as GeoJSONCoordinate[][];
-            if (!coords[0]) return;
-
-            if (coords[0].length > 0) {
-              const centerLong =
-                coords[0].reduce((sum, coord) => sum + coord[0]!, 0) /
-                coords[0].length;
-              const centerLat =
-                coords[0].reduce((sum, coord) => sum + coord[1]!, 0) /
-                coords[0].length;
-              setFocusCoordinates([centerLong, centerLat]);
-            }
-          }
-        }
-      })
-      .catch((error: Error) => {
-        console.error("Error loading GeoJSON:", error);
-        setError(error.message);
-        setIsLoading(false);
-      });
+      setFocusCoordinates([firstCoords.x, firstCoords.y]);
+    }
+    setIsLoading(false);
   }, []);
-
-  if (!geoJsonData) {
-    return (
-      <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
-        <span className="text-destructive">
-          No GeoJSON features found in the data.
-        </span>
-        <Globe />
-      </Canvas>
-    );
-  }
 
   return (
     <>
@@ -166,12 +135,10 @@ export default function Scene() {
           autoRotateSpeed={0.5}
         />
 
-        {/* Focus camera on selected region */}
         {focusCoordinates && (
           <CameraFocus
             longitude={focusCoordinates[0]}
             latitude={focusCoordinates[1]}
-            enableAutomaticRotation={false}
           />
         )}
       </Canvas>

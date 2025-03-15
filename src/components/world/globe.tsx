@@ -23,17 +23,8 @@ export interface GeoJSONCoordinate {
 }
 
 interface GeoJSONGeometry {
-  type:
-    | "Point"
-    | "LineString"
-    | "Polygon"
-    | "MultiPoint"
-    | "MultiLineString"
-    | "MultiPolygon";
-  coordinates:
-    | GeoJSONCoordinate[]
-    | GeoJSONCoordinate[][]
-    | GeoJSONCoordinate[][][];
+  type: "Polygon";
+  coordinates: GeoJSONCoordinate[][];
 }
 
 interface GeoJSONFeature {
@@ -48,7 +39,7 @@ export interface GeoJSONData {
 }
 
 interface GlobeProps {
-  geoJsonData?: GeoJSONData;
+  geoJsonData?: GeoJSONData[];
   geoJsonLineColor?: string;
   geoJsonFillColor?: string;
   geoJsonLineWidth?: number;
@@ -56,7 +47,7 @@ interface GlobeProps {
 }
 
 // Helper function to convert lat/long to 3D coordinates
-const latLongToVector3 = (
+export const latLongToVector3 = (
   latitude: number,
   longitude: number,
   radius: number,
@@ -101,149 +92,116 @@ export default function Globe({
     const geoJsonRadius = globeRadius * 1.005; // Just slightly above the globe surface
 
     // Process each feature
-    geoJsonData.features.forEach((feature) => {
-      if (
-        feature.geometry.type === "Polygon" ||
-        feature.geometry.type === "MultiPolygon"
-      ) {
-        // Type assertions to handle the polymorphic types
-        const polygons =
-          feature.geometry.type === "Polygon"
-            ? [feature.geometry.coordinates as GeoJSONCoordinate[][]]
-            : (feature.geometry.coordinates as GeoJSONCoordinate[][][]);
+    geoJsonData.forEach((geoJson) => {
+      geoJson.features.forEach((feature) => {
+        if (
+          feature.geometry.type === "Polygon" ||
+          feature.geometry.type === "MultiPolygon"
+        ) {
+          // Type assertions to handle the polymorphic types
+          const polygons = [feature.geometry.coordinates];
 
-        polygons.forEach((polygon) => {
-          // Process each ring of the polygon
-          polygon.forEach((ring) => {
-            // Create the outline
-            const outlinePoints: Vector3[] = [];
+          polygons.forEach((polygon) => {
+            // Process each ring of the polygon
+            polygon.forEach((ring) => {
+              // Create the outline
+              const outlinePoints: Vector3[] = [];
 
-            // Create points for the shape (for filling)
-            const points: Vector3[] = [];
+              // Create points for the shape (for filling)
+              const points: Vector3[] = [];
 
-            ring.forEach((coord: GeoJSONCoordinate) => {
-              // Extract coordinates
-              const longitude = coord[0];
-              const latitude = coord[1];
+              ring.forEach((coord: GeoJSONCoordinate) => {
+                // Extract coordinates
+                const longitude = coord[0];
+                const latitude = coord[1];
 
-              if (
-                typeof longitude === "number" &&
-                typeof latitude === "number"
-              ) {
-                const point = latLongToVector3(
-                  latitude,
-                  longitude,
-                  geoJsonRadius,
-                );
-                outlinePoints.push(point);
-                points.push(point);
-              }
-            });
-
-            if (outlinePoints.length > 2) {
-              // Create outline
-              const outlineGeometry = new BufferGeometry().setFromPoints(
-                outlinePoints,
-              );
-              const outlineMaterial = new LineBasicMaterial({
-                color: new Color(geoJsonLineColor),
-                linewidth: geoJsonLineWidth,
-                opacity: geoJsonOpacity,
-                transparent: true,
+                if (
+                  typeof longitude === "number" &&
+                  typeof latitude === "number"
+                ) {
+                  const point = latLongToVector3(
+                    latitude,
+                    longitude,
+                    geoJsonRadius,
+                  );
+                  outlinePoints.push(point);
+                  points.push(point);
+                }
               });
-              const outline = new Line(outlineGeometry, outlineMaterial);
 
-              // Store feature properties
-              if (feature.properties) {
-                outline.userData = feature.properties;
-              }
-
-              // Add to the group
-              geoJsonRef.current.add(outline);
-
-              // Create filled area (this is challenging in 3D spherical space)
-              // We'll use a simplified approach by rendering individual faces
-              for (let i = 0; i < points.length - 2; i++) {
-                const triangleGeometry = new BufferGeometry();
-                const vertices = [
-                  points[0]!.x,
-                  points[0]!.y,
-                  points[0]!.z,
-                  points[i + 1]!.x,
-                  points[i + 1]!.y,
-                  points[i + 1]!.z,
-                  points[i + 2]!.x,
-                  points[i + 2]!.y,
-                  points[i + 2]!.z,
-                ];
-
-                triangleGeometry.setAttribute(
-                  "position",
-                  new Float32BufferAttribute(vertices, 3),
+              if (outlinePoints.length > 2) {
+                // Create outline
+                const outlineGeometry = new BufferGeometry().setFromPoints(
+                  outlinePoints,
                 );
-                triangleGeometry.computeVertexNormals();
-
-                // Create material with transparency for the fill
-                const fillColor = new Color(geoJsonFillColor.substring(0, 7)); // Get the hex color part
-                const fillOpacity = parseFloat(
-                  geoJsonFillColor.substring(
-                    geoJsonFillColor.lastIndexOf(",") + 1,
-                    geoJsonFillColor.length - 1,
-                  ),
-                );
-
-                const fillMaterial = new MeshBasicMaterial({
-                  color: fillColor,
+                const outlineMaterial = new LineBasicMaterial({
+                  color: new Color(geoJsonLineColor),
+                  linewidth: geoJsonLineWidth,
+                  opacity: geoJsonOpacity,
                   transparent: true,
-                  opacity: fillOpacity,
-                  side: DoubleSide,
                 });
-
-                const triangleMesh = new Mesh(triangleGeometry, fillMaterial);
+                const outline = new Line(outlineGeometry, outlineMaterial);
 
                 // Store feature properties
                 if (feature.properties) {
-                  triangleMesh.userData = feature.properties;
+                  outline.userData = feature.properties;
                 }
 
-                geoJsonRef.current.add(triangleMesh);
+                // Add to the group
+                geoJsonRef.current.add(outline);
+
+                // Create filled area (this is challenging in 3D spherical space)
+                // We'll use a simplified approach by rendering individual faces
+                for (let i = 0; i < points.length - 2; i++) {
+                  const triangleGeometry = new BufferGeometry();
+                  const vertices = [
+                    points[0]!.x,
+                    points[0]!.y,
+                    points[0]!.z,
+                    points[i + 1]!.x,
+                    points[i + 1]!.y,
+                    points[i + 1]!.z,
+                    points[i + 2]!.x,
+                    points[i + 2]!.y,
+                    points[i + 2]!.z,
+                  ];
+
+                  triangleGeometry.setAttribute(
+                    "position",
+                    new Float32BufferAttribute(vertices, 3),
+                  );
+                  triangleGeometry.computeVertexNormals();
+
+                  // Create material with transparency for the fill
+                  const fillColor = new Color(geoJsonFillColor.substring(0, 7)); // Get the hex color part
+                  const fillOpacity = parseFloat(
+                    geoJsonFillColor.substring(
+                      geoJsonFillColor.lastIndexOf(",") + 1,
+                      geoJsonFillColor.length - 1,
+                    ),
+                  );
+
+                  const fillMaterial = new MeshBasicMaterial({
+                    color: fillColor,
+                    transparent: true,
+                    opacity: fillOpacity,
+                    side: DoubleSide,
+                  });
+
+                  const triangleMesh = new Mesh(triangleGeometry, fillMaterial);
+
+                  // Store feature properties
+                  if (feature.properties) {
+                    triangleMesh.userData = feature.properties;
+                  }
+
+                  geoJsonRef.current.add(triangleMesh);
+                }
               }
-            }
+            });
           });
-        });
-      } else if (feature.geometry.type === "Point") {
-        // Handle Point features
-        const coords = feature.geometry
-          .coordinates as unknown as GeoJSONCoordinate;
-        const longitude = coords[0];
-        const latitude = coords[1];
-
-        if (typeof longitude === "number" && typeof latitude === "number") {
-          const position = latLongToVector3(
-            latitude,
-            longitude,
-            geoJsonRadius * 1.01,
-          ); // Slightly above polygons
-
-          // Create a small sphere to represent the point
-          const geometry = new SphereGeometry(0.05, 16, 16);
-          const material = new MeshBasicMaterial({
-            color: new Color(geoJsonLineColor),
-            opacity: geoJsonOpacity,
-            transparent: true,
-          });
-          const point = new Mesh(geometry, material);
-          point.position.copy(position);
-
-          // Store feature properties
-          if (feature.properties) {
-            point.userData = feature.properties;
-          }
-
-          geoJsonRef.current.add(point);
         }
-      }
-      // You can add support for other GeoJSON types (LineString, etc.) here
+      });
     });
   }, [
     geoJsonData,
