@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Skeleton } from "../ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -19,19 +18,7 @@ export default function ProfileAvatar() {
 
   const { setTheme, theme } = useTheme();
 
-  const [isPending, _] = React.useState(false);
   const [darkMode, setDarkMode] = React.useState(theme === "dark");
-
-  if (isPending)
-    return (
-      <div className="flex items-center gap-2">
-        <Skeleton className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-muted" />
-        <div>
-          <Skeleton className="h-4 w-24 bg-muted" />
-          <Skeleton className="h-4 w-32 bg-muted" />
-        </div>
-      </div>
-    );
 
   return (
     <DropdownMenu>

@@ -1,6 +1,6 @@
 "use client";
 
-import { GeoJSONData } from "@/components/world/globe";
+import type { GeoJSONData } from "@/components/world/globe";
 import { useEffect } from "react";
 
 export type Field = {
@@ -25,7 +25,8 @@ const isLocalStorageAvailable = () => {
     localStorage.setItem(testKey, testKey);
     localStorage.removeItem(testKey);
     return true;
-  } catch (e) {
+  } catch (error: unknown) {
+    console.error("localStorage is not available:", error);
     return false;
   }
 };

@@ -12,7 +12,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -64,6 +63,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { GeoJSONData } from "@/components/world/globe";
 
 function LoadingMap() {
   return (
@@ -105,7 +105,7 @@ export default function Page() {
             <CardHeader>
               <CardTitle>Data</CardTitle>
               <CardDescription>
-                View and analyze your data. See your field's health, crop
+                View and analyze your data. See your field&apos;s health, crop
                 growth, and more.
               </CardDescription>
             </CardHeader>
@@ -282,7 +282,7 @@ function NewFieldForm({
     addField({
       name: values.name,
       crop: values.crop,
-      geoJson: JSON.parse(values.geoJson),
+      geoJson: JSON.parse(values.geoJson) as GeoJSONData,
     });
 
     toast.success("Field added successfully!");

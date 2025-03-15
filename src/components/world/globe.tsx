@@ -12,7 +12,6 @@ import {
   LineBasicMaterial,
   Mesh,
   MeshBasicMaterial,
-  SphereGeometry,
   Vector3,
 } from "three";
 

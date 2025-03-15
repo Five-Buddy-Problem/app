@@ -1,27 +1,22 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, Stars, Text } from "@react-three/drei";
-import Globe, {
-  GeoJSONCoordinate,
-  GeoJSONData,
-  latLongToVector3,
-} from "./globe";
-import { Vector3 } from "three";
+import { OrbitControls, Stars } from "@react-three/drei";
+import Globe, { type GeoJSONData, latLongToVector3 } from "./globe";
 import { useFields } from "@/data/fields";
 
 // Import GeoJSON types
-interface GeoJSONGeometry {
-  type: string;
-  coordinates: number[][];
-}
+// interface GeoJSONGeometry {
+//   type: string;
+//   coordinates: number[][];
+// }
 
-interface GeoJSONFeature {
-  type: "Feature";
-  geometry: GeoJSONGeometry;
-  properties?: Record<string, unknown>;
-}
+// interface GeoJSONFeature {
+//   type: "Feature";
+//   geometry: GeoJSONGeometry;
+//   properties?: Record<string, unknown>;
+// }
 
 // Camera helper to focus on a specific longitude/latitude
 const CameraFocus = ({
@@ -32,7 +27,6 @@ const CameraFocus = ({
   latitude: number;
 }) => {
   const { camera } = useThree();
-  const rotationRef = useRef({ value: 0 });
 
   useEffect(() => {
     // Convert longitude and latitude to position
@@ -49,23 +43,6 @@ const CameraFocus = ({
   }, [camera, longitude, latitude]);
 
   return null;
-};
-
-// Label component to mark GeoJSON regions
-const GeoLabel = ({ position, text }: { position: Vector3; text: string }) => {
-  return (
-    <Text
-      position={position}
-      fontSize={0.2}
-      color="#FFFFFF"
-      anchorX="center"
-      anchorY="middle"
-      outlineWidth={0.02}
-      outlineColor="#000000"
-    >
-      {text}
-    </Text>
-  );
 };
 
 export default function Scene() {
@@ -99,6 +76,7 @@ export default function Scene() {
       setFocusCoordinates([firstCoords.x, firstCoords.y]);
     }
     setIsLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
