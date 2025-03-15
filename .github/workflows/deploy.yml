@@ -51,10 +51,8 @@ jobs:
       - name: Build the project
         run: pnpm build
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./.next
+      - name: Add CNAME file
+        run: echo "learn.realtalk.quest" > .next/CNAME
 
   deploy:
     environment:
@@ -64,5 +62,7 @@ jobs:
     needs: build
     steps:
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .next
