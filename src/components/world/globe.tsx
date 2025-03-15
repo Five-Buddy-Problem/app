@@ -74,7 +74,7 @@ export default function Globe({
   const geoJsonRef = useRef<Group>(new Group());
 
   // Load earth texture
-  const earthTexture = useTexture("/earth-texture.jpg");
+  const earthTexture = useTexture("/earth8k.jpg");
 
   // Convert GeoJSON to 3D coordinates
   useEffect(() => {
