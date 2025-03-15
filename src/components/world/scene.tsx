@@ -45,35 +45,6 @@ const CameraFocus = ({
     camera.lookAt(0, 0, 0);
   }, [camera, longitude, latitude]);
 
-  // Optional: animate camera around the globe
-  useEffect(() => {
-    if (!enableAutomaticRotation) return;
-
-    let animationId: number;
-    const animate = () => {
-      // Rotate around the globe
-      rotationRef.current.value += 0.001;
-
-      const cameraDistance = 6;
-      const currentLongitude =
-        longitude + rotationRef.current.value * (180 / Math.PI);
-
-      const phi = (90 - latitude) * (Math.PI / 180);
-      const theta = (currentLongitude + 180) * (Math.PI / 180);
-
-      camera.position.x = cameraDistance * Math.sin(phi) * Math.cos(theta);
-      camera.position.y = cameraDistance * Math.cos(phi);
-      camera.position.z = cameraDistance * Math.sin(phi) * Math.sin(theta);
-
-      camera.lookAt(0, 0, 0);
-
-      animationId = requestAnimationFrame(animate);
-    };
-
-    animate();
-    return () => cancelAnimationFrame(animationId);
-  }, [camera, longitude, latitude, enableAutomaticRotation]);
-
   return null;
 };
 
