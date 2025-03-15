@@ -64,6 +64,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { GeoJSONData } from "@/components/world/globe";
+import { calculateRemainingTime } from "@/lib/calculate-remaining-time";
 
 function LoadingMap() {
   return (
@@ -78,11 +79,10 @@ const WorldMap = dynamic(() => import("@/components/world/scene"), {
 });
 
 export default function Page() {
-  const [loading, isLoading] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const router = useRouter();
 
-  const { fields, removeField } = useFields();
+  const { fields, removeField, setLoading } = useFields();
 
   const [animationParent] = useAutoAnimate();
 
@@ -194,46 +194,63 @@ export default function Page() {
                       </CardContent>
                     )}
                     <CardFooter>
-                      <div className="flex w-full items-center space-x-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon">
-                              <Ellipsis className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem>
-                              <HistoryIcon className="mr-2 h-4 w-4" /> See
-                              historical data
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <SquarePen className="mr-2 h-4 w-4" /> Edit field
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={() => {
-                                removeField(field.name);
-                                router.refresh();
-                              }}
-                            >
-                              <Trash className="mr-2 h-4 w-4" /> Delete field
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button
-                          onClick={() => {
-                            isLoading(true);
+                      <div className="flex w-full items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="icon">
+                                <Ellipsis className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem>
+                                <HistoryIcon className="mr-2 h-4 w-4" /> See
+                                historical data
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <SquarePen className="mr-2 h-4 w-4" /> Edit
+                                field
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => {
+                                  removeField(field.name);
+                                  router.refresh();
+                                }}
+                              >
+                                <Trash className="mr-2 h-4 w-4" /> Delete field
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <Button
+                            onClick={() => {
+                              setLoading(field.name, true);
 
-                            toast.loading("Analyzing field data...");
-                            setTimeout(() => {
-                              toast.dismiss();
-                            }, 4000);
-                          }}
-                          disabled={loading}
-                        >
-                          <ChartLine className="mr-2 h-4 w-4" /> Analyze
-                        </Button>
+                              router.refresh();
+                              toast.loading("Analyzing field data...");
+                              setTimeout(() => {
+                                toast.dismiss();
+                              }, 4000);
+                            }}
+                            disabled={field.loading}
+                          >
+                            {!field.loading ? (
+                              <>
+                                <ChartLine className="mr-2 h-4 w-4" /> Analyze
+                              </>
+                            ) : (
+                              <>
+                                <Spinner /> Analyzing...
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        {!!field.loading && (
+                          <span className="text-sm text-muted-foreground">
+                            {calculateRemainingTime(new Date(field.finishTime))}
+                          </span>
+                        )}
                       </div>
                     </CardFooter>
                   </Card>
@@ -279,10 +296,15 @@ function NewFieldForm({
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    const randomMinutes = Math.floor(Math.random() * 60);
+    const now = new Date();
+    const finishTime = new Date(now.getTime() + 1000 * randomMinutes * 60);
+
     addField({
       name: values.name,
       crop: values.crop,
       geoJson: JSON.parse(values.geoJson) as GeoJSONData,
+      finishTime,
     });
 
     toast.success("Field added successfully!");

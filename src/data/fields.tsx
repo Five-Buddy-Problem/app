@@ -9,6 +9,7 @@ export type Field = {
   lastUpdated: Date;
   loading: boolean;
   geoJson: GeoJSONData;
+  finishTime: Date;
   data?: {
     infected: boolean;
     infectationChance: number;
@@ -140,5 +141,6 @@ export function useFields() {
     removeField,
     updateField,
     getAllGeoJsonData,
+    setLoading,
   };
 }
