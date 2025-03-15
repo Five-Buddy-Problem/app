@@ -36,7 +36,7 @@ export default function ProfileAvatar() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="cursor-pointer rounded-md duration-150 hover:bg-accent"
+        className="cursor-pointer rounded-md px-2 py-1 duration-150 hover:bg-accent"
         asChild
       >
         <div className="flex items-center gap-2">

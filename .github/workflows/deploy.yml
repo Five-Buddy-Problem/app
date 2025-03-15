@@ -2,6 +2,7 @@ name: Deploy Next.js site to Pages
 
 env:
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  NEXT_PUBLIC_CESIUM_ION_TOKEN: ${{ secrets.CESIUM_API_KEY }}
   NODE_ENV: production
 
 on:
