@@ -87,8 +87,8 @@ export default function DronesPage() {
           <CardFooter className="justify-end space-x-2">
             <Button variant="outline">Learn more</Button>
             <Button
-              onClick={() => {
-                navigator.clipboard.writeText(logs);
+              onClick={async () => {
+                await navigator.clipboard.writeText(logs);
                 toast.success("Copied the logs to clipboard");
               }}
             >
