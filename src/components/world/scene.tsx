@@ -123,12 +123,12 @@ export default function Scene() {
 
   if (!geoJsonData) {
     return (
-      <>
+      <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
         <span className="text-destructive">
           No GeoJSON features found in the data.
         </span>
         <Globe />
-      </>
+      </Canvas>
     );
   }
 
