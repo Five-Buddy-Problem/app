@@ -63,6 +63,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 function LoadingMap() {
   return (
@@ -82,6 +83,8 @@ export default function Page() {
   const router = useRouter();
 
   const { fields, removeField } = useFields();
+
+  const [animationParent] = useAutoAnimate();
 
   return (
     <>
@@ -137,7 +140,7 @@ export default function Page() {
             </Dialog>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-2" ref={animationParent}>
               {fields.length <= 0 ? (
                 <div className="flex h-full items-center justify-center">
                   <span className="text-muted-foreground">
