@@ -78,6 +78,7 @@ const WorldMap = dynamic(() => import("@/components/world/scene"), {
 
 export default function Page() {
   const [loading, isLoading] = React.useState(false);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
   const router = useRouter();
 
   const { fields, removeField } = useFields();
@@ -117,7 +118,7 @@ export default function Page() {
                 ones, and track your crops.
               </CardDescription>
             </div>
-            <Dialog>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="icon">
                   <Plus className="h-4 w-4" />
@@ -131,7 +132,7 @@ export default function Page() {
                     Enter the details of your new field.
                   </DialogDescription>
                 </DialogHeader>
-                <NewFieldForm />
+                <NewFieldForm setDialogOpen={setDialogOpen} />
               </DialogContent>
             </Dialog>
           </CardHeader>
@@ -144,8 +145,8 @@ export default function Page() {
                   </span>
                 </div>
               ) : (
-                fields.map((field) => (
-                  <Card key={field.name} className="bg-background shadow-md">
+                fields.map((field, i) => (
+                  <Card key={i} className="bg-background shadow-md">
                     <CardHeader>
                       <CardTitle>{field.name}</CardTitle>
                       <CardDescription>
@@ -243,7 +244,11 @@ export default function Page() {
   );
 }
 
-function NewFieldForm() {
+function NewFieldForm({
+  setDialogOpen,
+}: {
+  setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const { addField } = useFields();
   const router = useRouter();
 
@@ -279,6 +284,7 @@ function NewFieldForm() {
     toast.success("Field added successfully!");
 
     router.refresh();
+    setDialogOpen(false);
   }
 
   return (
