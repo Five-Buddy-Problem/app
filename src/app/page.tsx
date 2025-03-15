@@ -78,6 +78,18 @@ const WorldMap = dynamic(() => import("@/components/world/scene"), {
   ssr: false,
 });
 
+function greeting() {
+  const today = new Date();
+  const hour = today.getHours();
+  if (hour >= 6 && hour < 12) {
+    return "Good morning";
+  } else if (hour >= 12 && hour < 18) {
+    return "Good afternoon";
+  } else {
+    return "Good evening";
+  }
+}
+
 export default function Page() {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const router = useRouter();
@@ -87,8 +99,14 @@ export default function Page() {
   const [animationParent] = useAutoAnimate();
 
   return (
-    <>
-      <div className="flex flex-col gap-5 md:flex-row">
+    <div>
+      <div className="mb-4 flex flex-col gap-0.5 leading-none">
+        <h2 className="text-2xl font-bold">{greeting()}, User!</h2>
+        <p className="text-muted-foreground">
+          View your fields, analyze your data, and manage your crops.
+        </p>
+      </div>
+      <div className="flex h-full flex-col gap-5 md:flex-row">
         <section className="flex h-full w-full flex-col gap-5">
           <Card className="h-3/5">
             <CardHeader>
@@ -260,7 +278,7 @@ export default function Page() {
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
 }
 

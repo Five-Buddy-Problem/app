@@ -32,14 +32,6 @@ const navMain = [
         title: "Data & Reports",
         url: "/reports",
       },
-      {
-        title: "Weather",
-        url: "/weather",
-      },
-      {
-        title: "Marketplace",
-        url: "/marketplace",
-      },
     ],
   },
   {
@@ -52,10 +44,6 @@ const navMain = [
       {
         title: "Flight logs",
         url: "/flights",
-      },
-      {
-        title: "Maintenance",
-        url: "/maintenance",
       },
     ],
   },
@@ -95,7 +83,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <Image src="/logo.jpg" alt="Logo" height="32" width="32" />
                 <div className="flex flex-col gap-0.5 px-2 leading-none">
                   <span className="font-semibold">Yields of Tomorrow</span>
-                  <span className="text-muted-foreground">Beat the pests!</span>
+                  <span className="text-muted-foreground">
+                    Agricultural Intelligence
+                  </span>
                 </div>
               </Link>
             </SidebarMenuButton>
