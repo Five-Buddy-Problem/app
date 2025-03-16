@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
-import Globe, { type GeoJSONData, latLongToVector3 } from "./globe";
+import Globe, { type GeoJSONData } from "./globe";
 import { useFields } from "@/data/fields";
 
 // Import GeoJSON types
@@ -28,6 +28,8 @@ const CameraFocus = ({
 }) => {
   const { camera } = useThree();
 
+  longitude = 180 - longitude;
+
   useEffect(() => {
     // Convert longitude and latitude to position
     const phi = (90 - latitude) * (Math.PI / 180);
@@ -51,9 +53,6 @@ export default function Scene() {
   );
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [focusCoordinates, setFocusCoordinates] = useState<[number, number]>([
-    0, 0,
-  ]);
   const { getAllGeoJsonData } = useFields();
 
   useEffect(() => {
@@ -65,15 +64,12 @@ export default function Scene() {
       setGeoJsonData(geoJson);
       const coords = geoJson[0]?.features[0]?.geometry.coordinates;
       if (!coords || coords.length === 0) {
+        setError(
+          "No fields found, please register your fields to see them on the globe.",
+        );
+        setIsLoading(false);
         return;
       }
-      const firstCoords = latLongToVector3(
-        coords[0]![0]![0],
-        coords[0]![0]![1],
-        2,
-      );
-
-      setFocusCoordinates([firstCoords.x, firstCoords.y]);
     }
     setIsLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,8 +78,8 @@ export default function Scene() {
   return (
     <>
       {error && (
-        <span className="text-destructive">
-          There was an error loading the globe. Please try again later.
+        <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-destructive">
+          {error}
         </span>
       )}
       {isLoading && (
@@ -92,7 +88,7 @@ export default function Scene() {
         </span>
       )}
 
-      <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
+      <Canvas camera={{ position: [0, 0, 6], fov: 20 }}>
         <ambientLight intensity={1.5} />
         <pointLight position={[10, 10, 10]} intensity={1.5} />
 
@@ -109,16 +105,11 @@ export default function Scene() {
           enableZoom={true}
           enablePan={true}
           enableRotate={true}
-          autoRotate={false}
-          autoRotateSpeed={0.5}
+          autoRotate={!geoJsonData || geoJsonData.length <= 0}
+          autoRotateSpeed={0.2}
         />
 
-        {focusCoordinates && (
-          <CameraFocus
-            longitude={focusCoordinates[0]}
-            latitude={focusCoordinates[1]}
-          />
-        )}
+        <CameraFocus longitude={11} latitude={42} />
       </Canvas>
     </>
   );

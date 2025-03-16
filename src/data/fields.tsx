@@ -14,6 +14,7 @@ export type Field = {
   loading: boolean;
   geoJson: GeoJSONData;
   finishTime: Date;
+  imageSrc: string;
   data?: {
     infected: boolean;
     infectationChance: number;
@@ -50,7 +51,73 @@ export function getFieldsFromStorage(): Field[] {
   }
 
   const fieldsJSON = localStorage.getItem(FIELDS_STORAGE_KEY);
-  if (!fieldsJSON) return [];
+  if (!fieldsJSON) {
+    // This is the first time the app is loaded.
+    // Load the app with some mock data
+    const mockData: Field[] = [
+      {
+        name: "Field 1",
+        crop: "Wheat",
+        lastUpdated: new Date(),
+        loading: false,
+        imageSrc: "/fields/field1.png",
+        geoJson: {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              properties: {},
+              geometry: {
+                coordinates: [
+                  [
+                    [10.1462154932114, 45.12560525530924],
+                    [10.1462154932114, 45.985198388170716],
+                    [8.23058979531993, 45.985198388170716],
+                    [8.23058979531993, 45.12560525530924],
+                    [10.1462154932114, 45.12560525530924],
+                  ],
+                ],
+                type: "Polygon",
+              },
+            },
+          ],
+        },
+        finishTime: new Date(new Date().getTime() + 1000 * 60 * 60 * 0.3),
+      },
+      {
+        name: "Field 2",
+        crop: "Corn",
+        lastUpdated: new Date(),
+        loading: false,
+        imageSrc: "/fields/field2.png",
+        geoJson: {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              properties: {},
+              geometry: {
+                coordinates: [
+                  [
+                    [11.898955111101458, 42.22013122218158],
+                    [11.898955111101458, 41.53770959372409],
+                    [13.165839381129047, 41.53770959372409],
+                    [13.165839381129047, 42.22013122218158],
+                    [11.898955111101458, 42.22013122218158],
+                  ],
+                ],
+                type: "Polygon",
+              },
+            },
+          ],
+        },
+        finishTime: new Date(new Date().getTime() + 1000 * 60 * 60 * 0.17),
+      },
+    ];
+
+    saveFieldsToStorage(mockData);
+    return mockData;
+  }
 
   try {
     // Parse the JSON and convert date strings back to Date objects

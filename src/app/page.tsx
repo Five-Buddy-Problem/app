@@ -44,9 +44,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import type { GeoJSONData } from "@/components/world/globe";
 import { useFields } from "@/data/fields";
+import { calculateRemainingTime } from "@/lib/calculate-remaining-time";
 import { formatDate } from "@/lib/format-date";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ChartLine,
@@ -57,14 +68,12 @@ import {
   Trash,
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { GeoJSONData } from "@/components/world/globe";
-import { calculateRemainingTime } from "@/lib/calculate-remaining-time";
 
 function LoadingMap() {
   return (
@@ -76,6 +85,16 @@ function LoadingMap() {
 
 const WorldMap = dynamic(() => import("@/components/world/scene"), {
   ssr: false,
+  loading: () => (
+    <div className="relative h-full w-full">
+      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <div className="flex flex-col items-center justify-center space-y-1 text-muted-foreground">
+          <Spinner />
+          <span>Loading your globe...</span>
+        </div>
+      </span>
+    </div>
+  ),
 });
 
 function greeting() {
@@ -106,14 +125,14 @@ export default function Page() {
           View your fields, analyze your data, and manage your crops.
         </p>
       </div>
-      <div className="flex h-full flex-col gap-5 md:flex-row">
+      <div className="flex h-full flex-col gap-5 lg:flex-row">
         <section className="flex h-full w-full flex-col gap-5">
           <Card className="h-3/5">
             <CardHeader>
               <CardTitle>Field maps</CardTitle>
               <CardDescription>View your fields on the map.</CardDescription>
             </CardHeader>
-            <CardContent className="h-3/5 md:h-4/5">
+            <CardContent className="relative h-3/5 md:h-4/5">
               <React.Suspense fallback={<LoadingMap />}>
                 <WorldMap />
               </React.Suspense>
@@ -127,10 +146,12 @@ export default function Page() {
                 growth, and more.
               </CardDescription>
             </CardHeader>
-            <CardContent></CardContent>
+            <CardContent>
+              <Data />
+            </CardContent>
           </Card>
         </section>
-        <Card className="min-h-[75vh]">
+        <Card className="lg:min-h-[75vh]">
           <CardHeader className="flex flex-row justify-between space-x-4">
             <div className="flex-1 space-y-1.5">
               <CardTitle>My fields</CardTitle>
@@ -169,11 +190,21 @@ export default function Page() {
                 fields.map((field, i) => (
                   <Card key={i} className="bg-background shadow-md">
                     <CardHeader>
-                      <CardTitle>{field.name}</CardTitle>
-                      <CardDescription>
-                        {field.crop} | Last updated{" "}
-                        {formatDate(field.lastUpdated)}
-                      </CardDescription>
+                      <div className="flex w-full items-center justify-between">
+                        <div className="flex flex-col gap-1.5 leading-none">
+                          <CardTitle>{field.name}</CardTitle>
+                          <CardDescription>
+                            {field.crop} | Last updated{" "}
+                            {formatDate(field.lastUpdated)}
+                          </CardDescription>
+                        </div>
+                        <Image
+                          src={field.imageSrc}
+                          alt="Field image"
+                          height={45}
+                          width={45}
+                        />
+                      </div>
                     </CardHeader>
                     {!!field.data && (
                       <CardContent>
@@ -282,6 +313,52 @@ export default function Page() {
   );
 }
 
+function Data() {
+  const mockData = [
+    {
+      id: "ANZ-2312",
+      status: "Completed",
+      probability: "54%",
+      infected: "Not infected",
+    },
+    {
+      id: "ANZ-2409",
+      status: "Completed",
+      probability: "87%",
+      infected: "Infected",
+    },
+    {
+      id: "ANZ-2411",
+      status: "Analyzing...",
+      probability: "-",
+      infected: "-",
+    },
+  ];
+
+  return (
+    <Table className="mb-4 md:mb-0">
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[200px]">Analyze ID</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Infestation Probability</TableHead>
+          <TableHead className="text-right">Infested</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {mockData.map((data) => (
+          <TableRow key={data.id}>
+            <TableCell className="font-medium">{data.id}</TableCell>
+            <TableCell>{data.status}</TableCell>
+            <TableCell>{data.probability}</TableCell>
+            <TableCell className="text-right">{data.infected}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 function NewFieldForm({
   setDialogOpen,
 }: {
@@ -323,6 +400,7 @@ function NewFieldForm({
       crop: values.crop,
       geoJson: JSON.parse(values.geoJson) as GeoJSONData,
       finishTime,
+      imageSrc: `/fields/field${Math.floor(Math.random()) + 1}.png`,
     });
 
     toast.success("Field added successfully!");
